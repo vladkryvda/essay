@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Oxford Crucible</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #0f0e0c;
+      color: #dfd8cb;
+      font-family: 'EB Garamond', serif;
+    }
+    .font-title { font-family: 'Cinzel', serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Приховуємо стандартні скролбари */
+    textarea::-webkit-scrollbar { width: 4px; }
+    textarea::-webkit-scrollbar-thumb { background: #262420; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-[#4a3f2c] selection:text-white">
+
+  <!-- HEADER -->
+  <header class="border-b border-[#211f1b] py-6 px-8 flex justify-between items-center">
+    <span class="font-title text-sm tracking-[0.25em] text-[#8c8273] uppercase">Oxford Tutorial Crucible</span>
+    <span id="system-status" class="text-xs font-mono text-[#5c5446]">STANDBY</span>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-3xl w-full mx-auto p-6 md:p-12 flex flex-col justify-center">
+
+    <!-- STEP 1: PREPARATION & PROMPT -->
+    <section id="step-setup" class="space-y-8">
+      <div>
+        <h1 class="font-title text-2xl md:text-3xl text-[#d1c7b7] mb-2 tracking-wide">The Colloquium</h1>
+        <p class="text-sm text-[#7a7162] italic">Підготуйте матеріал вашої лекції та сформулюйте проблемне питання.</p>
+      </div>
+
+      <div class="space-y-6">
+        <div>
+          <label class="block text-xs uppercase tracking-wider text-[#8a806f] mb-2 font-mono">Контекст теми / Що ви вивчали</label>
+          <input type="text" id="topic-context" placeholder="напр. Розділ 3 «Левіафана» Гоббса або Лекція про інфляцію" 
+                 class="w-full bg-[#171512] border border-[#2b2721] rounded-none px-4 py-3 text-sm focus:outline-none focus:border-[#7a6a4f] text-[#dfd8cb] placeholder-[#474136]">
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase tracking-wider text-[#8a806f] mb-2 font-mono">Оксфордське питання (Thesis Prompt)</label>
+          <textarea id="essay-prompt" rows="3" placeholder="Чи є авторитаризм Гоббса єдиним логічним наслідком індивідуального егоїзму? Обговоріть." 
+                    class="w-full bg-[#171512] border border-[#2b2721] rounded-none p-4 text-base focus:outline-none focus:border-[#7a6a4f] text-[#dfd8cb] placeholder-[#474136]"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <div class="flex items-center space-x-3">
+            <span class="text-xs font-mono text-[#8a806f] uppercase">Час:</span>
+            <select id="time-limit" class="bg-[#171512] border border-[#2b2721] text-xs font-mono text-[#dfd8cb] p-2 focus:outline-none">
+              <option value="30">30 хв (Sprint)</option>
+              <option value="45" selected>45 хв (Standard)</option>
+              <option value="60">60 хв (Rigorous)</option>
+            </select>
+          </div>
+
+          <button onclick="startWriting()" 
+                  class="font-title text-xs tracking-widest uppercase border border-[#6b5838] text-[#c7af85] px-6 py-3 hover:bg-[#1f1b14] transition-all">
+            Enter The Crucible →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: TIMED ZEN WRITING -->
+    <section id="step-writing" class="hidden flex-col h-full space-y-6">
+      <div class="flex justify-between items-baseline border-b border-[#1c1a17] pb-4">
+        <div class="max-w-[70%]">
+          <span class="text-xs uppercase tracking-widest text-[#7a6f5e] font-mono block mb-1">PROMPT</span>
+          <p id="display-prompt" class="italic text-base text-[#c9bea9]"></p>
+        </div>
+        <div class="text-right">
+          <div id="timer-display" class="font-mono text-2xl text-[#b89f74]">45:00</div>
+          <span id="word-count" class="text-xs font-mono text-[#5c5446]">0 words</span>
+        </div>
+      </div>
+
+      <textarea id="essay-content" 
+                placeholder="Begin your dialectical argument here (Thesis, Antithesis, Synthesis)..." 
+                class="w-full h-[55vh] bg-transparent text-lg md:text-xl leading-relaxed resize-none focus:outline-none placeholder-[#332f28] text-[#e0d6c5] selection:bg-[#383022]"></textarea>
+
+      <div class="flex justify-end pt-4 border-t border-[#1c1a17]">
+        <button onclick="finishEssay()" 
+                class="font-title text-xs tracking-widest uppercase border border-[#7a6a4f] text-[#dfd8cb] px-8 py-3 hover:bg-[#211d17] transition-all">
+          Submit to Tutor (Oral Defence)
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: ORAL TUTORIAL (AI Socratic Voice Debate) -->
+    <section id="step-tutorial" class="hidden space-y-8">
+      <div>
+        <h2 class="font-title text-xl text-[#d1c7b7] tracking-wider mb-2">Tutorial: Socratic Examination</h2>
+        <p class="text-sm text-[#7a7162] italic">The Don has reviewed your paper and questions your premise. Respond verbally in English.</p>
+      </div>
+
+      <!-- Dialogue Area -->
+      <div id="dialogue-box" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+        <!-- Messages appear here -->
+      </div>
+
+      <!-- Voice Controls -->
+      <div class="border-t border-[#26221c] pt-6 flex flex-col items-center justify-center space-y-4">
+        <button id="mic-btn" onclick="toggleSpeech()" 
+                class="w-16 h-16 rounded-full border border-[#7a6a4f] flex items-center justify-center text-[#dfd8cb] hover:bg-[#1f1b14] transition-all">
+          <span id="mic-icon" class="text-xl">🎙️</span>
+        </button>
+        <span id="speech-indicator" class="text-xs font-mono text-[#7a6f5e] uppercase tracking-widest">Click to Speak to Tutor</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-[#171512] py-4 text-center text-xs font-mono text-[#423c32]">
+    Nullius in verba — Take nobody's word for it.
+  </footer>
+
+  <script>
+    let timeLeft = 0;
+    let timerInterval = null;
+    let recognition = null;
+    let isListening = false;
+
+    // --- 1. START WRITING ---
+    function startWriting() {
+      const prompt = document.getElementById('essay-prompt').value.trim();
+      const time = parseInt(document.getElementById('time-limit').value);
+      
+      if (!prompt) {
+        alert("Будь ласка, введіть запитання для есе.");
+        return;
+      }
+
+      document.getElementById('display-prompt').innerText = prompt;
+      timeLeft = time * 60;
+      
+      document.getElementById('step-setup').classList.add('hidden');
+      document.getElementById('step-writing').classList.remove('hidden');
+      document.getElementById('step-writing').classList.add('flex');
+      document.getElementById('system-status').innerText = "WRITING IN PROGRESS";
+
+      startTimer();
+      setupEditorCounters();
+    }
+
+    function startTimer() {
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("Time is up! Your paper is presented to the Don.");
+          finishEssay();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeLeft / 60);
+      const secs = timeLeft % 60;
+      document.getElementById('timer-display').innerText = 
+        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function setupEditorCounters() {
+      const editor = document.getElementById('essay-content');
+      editor.addEventListener('input', () => {
+        const text = editor.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        document.getElementById('word-count').innerText = `${words} words`;
+      });
+    }
+
+    // --- 2. FINISH ESSAY & ENTER ORAL DEFENCE ---
+    function finishEssay() {
+      clearInterval(timerInterval);
+      document.getElementById('step-writing').classList.remove('flex');
+      document.getElementById('step-writing').classList.add('hidden');
+      document.getElementById('step-tutorial').classList.remove('hidden');
+      document.getElementById('system-status').innerText = "ORAL DEFENCE (ENGLISH)";
+
+      initSpeechRecognition();
+      
+      // Перша репліка Оксфордського тьютора
+      setTimeout(() => {
+        const initialCritique = "I have examined your premise. While you articulate your point, isn't your core assumption dangerously reductionist regarding human nature? How do you justify this leap?";
+        addMessage("Oxford Tutor", initialCritique);
+        speakText(initialCritique);
+      }, 1000);
+    }
+
+    // --- 3. VOICE ENGINE (Browser Native Web Speech API) ---
+    function initSpeechRecognition() {
+      window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!window.SpeechRecognition) {
+        alert("Ваш браузер не підтримує Web Speech API. Рекомендується Chrome або Edge.");
+        return;
+      }
+      
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-GB'; // Британська англійська для тьютора
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        const studentResponse = event.results[0][0].transcript;
+        addMessage("You", studentResponse);
+        stopListeningState();
+        simulateTutorResponse(studentResponse);
+      };
+
+      recognition.onerror = () => stopListeningState();
+      recognition.onend = () => stopListeningState();
+    }
+
+    function toggleSpeech() {
+      if (!recognition) return;
+      if (!isListening) {
+        recognition.start();
+        isListening = true;
+        document.getElementById('speech-indicator').innerText = "Listening... Defend your thesis in English";
+        document.getElementById('speech-indicator').classList.add("text-[#b89f74]");
+      } else {
+        recognition.stop();
+        stopListeningState();
+      }
+    }
+
+    function stopListeningState() {
+      isListening = false;
+      document.getElementById('speech-indicator').innerText = "Click to Speak to Tutor";
+      document.getElementById('speech-indicator').classList.remove("text-[#b89f74]");
+    }
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-GB';
+      utterance.rate = 0.95; // трохи повільніше, академічний тон
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function addMessage(author, text) {
+      const box = document.getElementById('dialogue-box');
+      const msg = document.createElement('div');
+      msg.className = "border-l border-[#3d362b] pl-4 py-1";
+      msg.innerHTML = `
+        <span class="block text-xs uppercase font-mono tracking-widest ${author === 'Oxford Tutor' ? 'text-[#b89f74]' : 'text-[#7a7162]'}">${author}</span>
+        <p class="text-base text-[#ded7c8] mt-1">${text}</p>
+      `;
+      box.appendChild(msg);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // Симуляція відповіді тьютора (для повної версії підключається API Claude/GPT-4o)
+    function simulateTutorResponse(userArg) {
+      const tutorReplies = [
+        "A clever pivot, yet you have essentially conceded the counter-argument without realizing it. What about the institutional consequences?",
+        "That holds only if we accept your utilitarian premise. What would a Kantian objection be to that very sentence?",
+        "Fascinating. But aren't you conflating empirical fact with normative justification here?"
+      ];
+      
+      setTimeout(() => {
+        const reply = tutorReplies[Math.floor(Math.random() * tutorReplies.length)];
+        addMessage("Oxford Tutor", reply);
+        speakText(reply);
+      }, 1200);
+    }
+  </script>
+</body>
+</html>
